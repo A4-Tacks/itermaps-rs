@@ -144,8 +144,8 @@ pub trait MapExt: Iterator + Sized {
     /// like `iter.map(|v| &v[index])`
     fn map_index<'a, R, I, U>(self, index: I) -> MapIndex<'a, Self, I>
     where Self::Item: ThisRef<'a, Out = R>,
-          R: Index<I, Output = U>,
-          U: 'a,
+          R: ?Sized + Index<I, Output = U>,
+          U: ?Sized + 'a,
           I: Clone,
     {
         MapIndex {
@@ -158,8 +158,8 @@ pub trait MapExt: Iterator + Sized {
     /// like `iter.map(|v| &mut v[index])`
     fn map_index_mut<'a, R, I, U>(self, index: I) -> MapIndexMut<'a, Self, I>
     where Self::Item: ThisMut<'a, Out = R>,
-          R: IndexMut<I, Output = U>,
-          U: 'a,
+          R: ?Sized + IndexMut<I, Output = U>,
+          U: ?Sized + 'a,
           I: Clone,
     {
         MapIndexMut {
