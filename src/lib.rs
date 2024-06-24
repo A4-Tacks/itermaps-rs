@@ -195,8 +195,8 @@ impl<'a, I, T, Idx, R> Iterator for MapIndex<'a, I, Idx>
 where I: Iterator,
       Idx: Clone,
       I::Item: ThisRef<'a, Out = R>,
-      R: Index<Idx, Output = T> + 'a,
-      T: 'a,
+      R: ?Sized + Index<Idx, Output = T> + 'a,
+      T: ?Sized + 'a,
 {
     type Item = &'a T;
 
@@ -233,8 +233,8 @@ impl<'a, I, T, Idx, R> DoubleEndedIterator for MapIndex<'a, I, Idx>
 where I: DoubleEndedIterator,
       Idx: Clone,
       I::Item: ThisRef<'a, Out = R>,
-      R: Index<Idx, Output = T> + 'a,
-      T: 'a,
+      R: ?Sized + Index<Idx, Output = T> + 'a,
+      T: ?Sized + 'a,
 {
     fn next_back(&mut self) -> Option<Self::Item> {
         self.iter.next_back()?
@@ -258,16 +258,16 @@ impl<'a, I, T, Idx, R> ExactSizeIterator for MapIndex<'a, I, Idx>
 where I: ExactSizeIterator,
       Idx: Clone,
       I::Item: ThisRef<'a, Out = R>,
-      R: Index<Idx, Output = T> + 'a,
-      T: 'a,
+      R: ?Sized + Index<Idx, Output = T> + 'a,
+      T: ?Sized + 'a,
 {
 }
 impl<'a, I, T, Idx, R> FusedIterator for MapIndex<'a, I, Idx>
 where I: FusedIterator,
       Idx: Clone,
       I::Item: ThisRef<'a, Out = R>,
-      R: Index<Idx, Output = T> + 'a,
-      T: 'a,
+      R: ?Sized + Index<Idx, Output = T> + 'a,
+      T: ?Sized + 'a,
 {
 }
 
@@ -291,8 +291,8 @@ impl<'a, I, T, Idx, R> Iterator for MapIndexMut<'a, I, Idx>
 where I: Iterator,
       Idx: Clone,
       I::Item: ThisMut<'a, Out = R>,
-      R: IndexMut<Idx, Output = T> + 'a,
-      T: 'a,
+      R: ?Sized + IndexMut<Idx, Output = T> + 'a,
+      T: ?Sized + 'a,
 {
     type Item = &'a mut T;
 
@@ -329,8 +329,8 @@ impl<'a, I, T, Idx, R> DoubleEndedIterator for MapIndexMut<'a, I, Idx>
 where I: DoubleEndedIterator,
       Idx: Clone,
       I::Item: ThisMut<'a, Out = R>,
-      R: IndexMut<Idx, Output = T> + 'a,
-      T: 'a,
+      R: ?Sized + IndexMut<Idx, Output = T> + 'a,
+      T: ?Sized + 'a,
 {
     fn next_back(&mut self) -> Option<Self::Item> {
         self.iter.next_back()?
@@ -354,16 +354,16 @@ impl<'a, I, T, Idx, R> ExactSizeIterator for MapIndexMut<'a, I, Idx>
 where I: ExactSizeIterator,
       Idx: Clone,
       I::Item: ThisMut<'a, Out = R>,
-      R: IndexMut<Idx, Output = T> + 'a,
-      T: 'a,
+      R: ?Sized + IndexMut<Idx, Output = T> + 'a,
+      T: ?Sized + 'a,
 {
 }
 impl<'a, I, T, Idx, R> FusedIterator for MapIndexMut<'a, I, Idx>
 where I: FusedIterator,
       Idx: Clone,
       I::Item: ThisMut<'a, Out = R>,
-      R: IndexMut<Idx, Output = T> + 'a,
-      T: 'a,
+      R: ?Sized + IndexMut<Idx, Output = T> + 'a,
+      T: ?Sized + 'a,
 {
 }
 
