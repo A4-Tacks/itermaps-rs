@@ -84,21 +84,21 @@ pub trait MapExt: Iterator + Sized {
     }
 
     /// like `iter.map(Into::into)`
-    fn map_into<'a, U>(self) -> MapFn<Self, U>
+    fn map_into<U>(self) -> MapFn<Self, U>
     where Self::Item: Into<U>,
     {
         self.map(Self::Item::into)
     }
 
     /// like `iter.map(TryInto::try_into)`
-    fn map_try_into<'a, U>(self) -> MapFn<Self, Result<U, <Self::Item as TryInto<U>>::Error>>
+    fn map_try_into<U>(self) -> MapFn<Self, Result<U, <Self::Item as TryInto<U>>::Error>>
     where Self::Item: TryInto<U>,
     {
         self.map(Self::Item::try_into)
     }
 
     /// like `iter.map(str::parse::<U>)`
-    fn map_parse<'a, U>(self) -> MapFn<Self, Result<U, U::Err>>
+    fn map_parse<U>(self) -> MapFn<Self, Result<U, U::Err>>
     where Self::Item: AsRef<str>,
           U: FromStr,
     {
@@ -125,7 +125,7 @@ pub trait MapExt: Iterator + Sized {
 
     #[cfg(not(feature = "no_std"))]
     /// like `iter.map(ToOwned::to_owned)`
-    fn map_to_owned<'a, R, U>(self) -> MapFn<Self, U>
+    fn map_to_owned<R, U>(self) -> MapFn<Self, U>
     where Self::Item: Deref<Target = R>,
           R: ?Sized + ToOwned<Owned = U>,
     {
@@ -134,7 +134,7 @@ pub trait MapExt: Iterator + Sized {
 
     #[cfg(not(feature = "no_std"))]
     /// like `iter.map(ToString::to_string)`
-    fn map_to_string<'a, R>(self) -> MapFn<Self, String>
+    fn map_to_string<R>(self) -> MapFn<Self, String>
     where Self::Item: Deref<Target = R>,
           R: ?Sized + ToString,
     {
