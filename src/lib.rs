@@ -1,4 +1,5 @@
-#![doc = include_str!("../README.md")]
+#![cfg_attr(feature = "no_std", no_std)]
+#![cfg_attr(not(feature = "no_std"), doc = include_str!("../README.md"))]
 
 use core::{
     fmt::{self, Debug},
@@ -60,6 +61,9 @@ where P: Deref + ThisMut<'a>,
     }
 }
 
+/// Implement commonly used combinations of [`Iterator::map`]
+///
+/// [`Iterator::map`]: core::iter::Iterator::map
 pub trait MapExt: Iterator + Sized {
     /// like `iter.map(Deref::deref)`
     fn map_deref<'a, R, U>(self) -> MapFn<Self, &'a U>
@@ -119,6 +123,7 @@ pub trait MapExt: Iterator + Sized {
         self.map(|r| r.this_mut().as_mut())
     }
 
+    #[cfg(not(feature = "no_std"))]
     /// like `iter.map(ToOwned::to_owned)`
     fn map_to_owned<'a, R, U>(self) -> MapFn<Self, U>
     where Self::Item: Deref<Target = R>,
@@ -127,6 +132,7 @@ pub trait MapExt: Iterator + Sized {
         self.map(|value| value.to_owned())
     }
 
+    #[cfg(not(feature = "no_std"))]
     /// like `iter.map(ToString::to_string)`
     fn map_to_string<'a, R>(self) -> MapFn<Self, String>
     where Self::Item: Deref<Target = R>,
@@ -361,6 +367,7 @@ where I: FusedIterator,
 {
 }
 
+#[cfg(not(feature = "no_std"))]
 #[cfg(test)]
 mod tests {
     use super::*;
