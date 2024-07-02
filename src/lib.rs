@@ -2,6 +2,7 @@
 #![cfg_attr(not(feature = "no_std"), doc = include_str!("../README.md"))]
 
 use core::{
+    borrow::{Borrow, BorrowMut},
     fmt::{self, Debug},
     iter::{FusedIterator, Map},
     marker::PhantomData,
@@ -121,6 +122,39 @@ pub trait MapExt: Iterator + Sized {
           <Self::Item as ThisRef<'a>>::Out: AsMut<U> + 'a,
     {
         self.map(|r| r.this_mut().as_mut())
+    }
+
+    /// like `iter.map(Borrow::borrow::<U>)`
+    fn map_borrow<'a, U>(self) -> MapFn<Self, &'a U>
+    where Self::Item: ThisRef<'a>,
+          U: ?Sized + 'a,
+          <Self::Item as ThisRef<'a>>::Out: Borrow<U> + 'a,
+    {
+        self.map(|r| r.this_ref().borrow())
+    }
+
+    /// like `iter.map(BorrowMut::borrow_mut::<U>)`
+    fn map_borrow_mut<'a, U>(self) -> MapFn<Self, &'a mut U>
+    where Self::Item: ThisMut<'a>,
+          U: ?Sized + 'a,
+          <Self::Item as ThisRef<'a>>::Out: BorrowMut<U> + 'a,
+    {
+        self.map(|r| r.this_mut().borrow_mut())
+    }
+
+    /// like `iter.map(IntoIterator::into_iter)`
+    fn map_into_iter<I>(self) -> MapFn<Self, I>
+    where Self::Item: IntoIterator<IntoIter = I>,
+    {
+        self.map(IntoIterator::into_iter)
+    }
+
+    /// like `iter.map(FromIterator::from_iter)`
+    fn map_collect<A, C>(self) -> MapFn<Self, C>
+    where Self::Item: Iterator<Item = A>,
+          C: FromIterator<A>,
+    {
+        self.map(FromIterator::from_iter)
     }
 
     #[cfg(not(feature = "no_std"))]
@@ -397,6 +431,20 @@ mod tests {
     fn test_as_mut() {
         let mut arr = [Box::new(2), Box::new(3)];
         let n: Option<&mut i32> = arr.iter_mut().map_as_mut().next();
+        assert_eq!(n, Some(&mut 2));
+    }
+
+    #[test]
+    fn test_borrow() {
+        let arr = ["a".to_owned(), "b".to_owned()];
+        let x = arr.iter().map_borrow::<str>().next();
+        assert_eq!(x, Some("a"));
+    }
+
+    #[test]
+    fn test_borrow_mut() {
+        let mut arr = [Box::new(2), Box::new(3)];
+        let n: Option<&mut i32> = arr.iter_mut().map_borrow_mut().next();
         assert_eq!(n, Some(&mut 2));
     }
 
