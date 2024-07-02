@@ -62,6 +62,181 @@ where P: Deref + ThisMut<'a>,
     }
 }
 
+fn array_each_ref<T, const N: usize>(arr: &[T; N]) -> [&T; N] {
+    use core::mem::{transmute_copy, MaybeUninit};
+    let mut result: [MaybeUninit<&T>; N] = unsafe {
+        MaybeUninit::uninit()
+            .assume_init()
+    };
+    for i in 0..N {
+        result[i].write(&arr[i]);
+    }
+    unsafe { transmute_copy(&result) }
+}
+fn array_each_mut<T, const N: usize>(arr: &mut [T; N]) -> [&mut T; N] {
+    use core::mem::{transmute_copy, MaybeUninit};
+    let mut result: [MaybeUninit<&mut T>; N] = unsafe {
+        MaybeUninit::uninit()
+            .assume_init()
+    };
+    let mut elem;
+    let mut arr = &mut arr[..];
+    for i in 0..N {
+        (elem, arr) = arr.split_first_mut().unwrap();
+        result[i].write(elem);
+    }
+    unsafe { transmute_copy(&result) }
+}
+
+/// Unpack, e.g `&(A, B)` into `(&A, &B)`
+///
+/// # Examples
+/// ```
+/// # use itermaps::Unpack;
+/// let arr: [&i32; 2] = (&[1, 2]).unpack();
+/// assert_eq!(arr, [&1, &2]);
+/// ```
+pub trait Unpack: Sized {
+    type Output;
+
+    /// Unpack, e.g `&(A, B)` into `(&A, &B)`
+    fn unpack(self) -> Self::Output;
+}
+macro_rules! impls {
+    (@impl($i:ident) $($ty:ty $(=[$($g:tt)*]($($w:tt)*))?=> $to:ty),+ $(,)? $b:block) => {
+        $(
+            impl$(<$($g)*>)? Unpack for $ty
+            $(where $($w)*)?
+            {
+                type Output = $to;
+
+                fn unpack($i) -> $to $b
+            }
+        )+
+    };
+    (@impl($i:ident) $($ty:ty $(=[$($g:tt)*])?=> $to:ty),+ $(,)? $b:block) => {
+        $(
+            impl$(<$($g)*>)? Unpack for $ty {
+                type Output = $to;
+
+                fn unpack($i) -> $to $b
+            }
+        )+
+    };
+    ($self:ident {
+        $($($ty:ty $(=[$($g:tt)*]$(($($w:tt)*))?)?=> $to:ty),+ $(,)? $b:block)*
+    }) => {
+        $(impls! {
+            @impl($self)
+            $($ty $(=[$($g)*]$(($($w)*))?)? => $to),+ $b
+        })*
+    };
+}
+impls!(self {
+    &'_ &'a T           =['a, T: ?Sized]    => &'a T,
+    &'_ mut &'a T       =['a, T: ?Sized]    => &'a T,
+    &'a mut &'_ mut T   =['a, T: ?Sized]    => &'a mut T,
+    {
+        *self
+    }
+
+    &'a Option<T>           =['a, T]    => Option<&'a T>,
+    &'a Result<T, E>        =['a, T, E] => Result<&'a T, &'a E>,
+    {
+        self.as_ref()
+    }
+
+    &'a mut Option<T>       =['a, T]    => Option<&'a mut T>,
+    &'a mut Result<T, E>    =['a, T, E] => Result<&'a mut T, &'a mut E>,
+    {
+        self.as_mut()
+    }
+
+    Option<&'a mut T>       =['a, T: ?Sized] => Option<&'a T>,
+    {
+        self.map(|x| &*x)
+    }
+
+    Result<&'a mut T, &'a mut E>    =['a, T: ?Sized, E: ?Sized]
+        => Result<&'a T, &'a E>,
+    {
+        match self {
+            Ok(t) => Ok(t),
+            Err(e) => Err(e),
+        }
+    }
+
+    &'a [T; N]      =['a, T, const N: usize]    => [&'a T; N],
+    {
+        array_each_ref(self)
+    }
+
+    &'a mut [T; N]  =['a, T, const N: usize]    => [&'a mut T; N],
+    {
+        array_each_mut(self)
+    }
+
+    [&'a mut T; N]  =['a, T: ?Sized, const N: usize]    => [&'a T; N],
+    {
+        self.map(|x| &*x)
+    }
+
+    Box<T>  =[T]    => T,
+    {
+        *self
+    }
+});
+macro_rules! impls {
+    ($fst:ident, $st:ident $(,)?) => {
+        impls!(@impl $fst);
+        impls!(@impl #[doc = "Fake Variadic impl"] $fst, $st);
+    };
+    ($fst:ident $(, $i:ident)+ $(,)?) => {
+        impls!($($i),*);
+
+        impls!(@impl #[doc(hidden)] $fst, $($i),+);
+    };
+    (@impl $(#[$meta:meta])* $fst:ident $(, $i:ident)* $(,)?) => {
+        $(#[$meta])*
+        impl<'a, $fst, $($i),*> Unpack
+        for &'a ($fst, $($i),*)
+        {
+            type Output = (&'a $fst, $(&'a $i),*);
+
+            fn unpack(self) -> Self::Output {
+                #[allow(non_snake_case)]
+                let ($fst, $($i),*) = self;
+                ($fst, $($i),*)
+            }
+        }
+        $(#[$meta])*
+        impl<'a, $fst, $($i),*> Unpack
+        for &'a mut ($fst, $($i),*)
+        {
+            type Output = (&'a mut $fst, $(&'a mut $i),*);
+
+            fn unpack(self) -> Self::Output {
+                #[allow(non_snake_case)]
+                let ($fst, $($i),*) = self;
+                ($fst, $($i),*)
+            }
+        }
+        $(#[$meta])*
+        impl<'a, $fst: ?Sized, $($i: ?Sized),*> Unpack
+        for (&'a mut $fst, $(&'a mut $i),*)
+        {
+            type Output = (&'a $fst, $(&'a $i),*);
+
+            fn unpack(self) -> Self::Output {
+                #[allow(non_snake_case)]
+                let ($fst, $($i),*) = self;
+                ($fst, $($i),*)
+            }
+        }
+    };
+}
+impls!(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P,);
+
 /// Implement commonly used combinations of [`Iterator::map`]
 ///
 /// [`Iterator::map`]: core::iter::Iterator::map
@@ -82,6 +257,13 @@ pub trait MapExt: Iterator + Sized {
           U: ?Sized + 'a,
     {
         self.map(|ref_value| ref_value.this_mut().deref_mut())
+    }
+
+    /// like `iter.map(Unpack::unpack)`
+    fn map_unpack<U>(self) -> MapFn<Self, U>
+    where Self::Item: Unpack<Output = U>,
+    {
+        self.map(Unpack::unpack)
     }
 
     /// like `iter.map(Into::into)`
@@ -485,5 +667,15 @@ mod tests {
         let arr = ["8"];
         let x: Option<Result<i32, _>> = arr.into_iter().map_parse().next();
         assert_eq!(x, Some(Ok(8)));
+    }
+
+    #[test]
+    fn test_unpack() {
+        let mut arr = [[1, 2, 3]];
+        let unpacked = arr.iter_mut()
+            .map_unpack::<[_; 3]>()
+            .next();
+        assert_eq!(unpacked, Some([&mut 1, &mut 2, &mut 3]));
+        assert_eq!((&mut [1, 2]).unpack(), [&mut 1, &mut 2]);
     }
 }
