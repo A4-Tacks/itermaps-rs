@@ -275,9 +275,13 @@ pub trait Unpack: Sized {
     /// Unpack, e.g `&(A, B)` into `(&A, &B)`
     fn unpack(self) -> Self::Output;
 }
-macro_rules! impls {
-    (@impl($i:ident) $($ty:ty $(=[$($g:tt)*]($($w:tt)*))?=> $to:ty),+ $(,)? $b:block) => {
+macro_rules! impls1 {
+    (@impl($i:ident) $(
+        $(#[$meta:meta])*
+        $ty:ty $(=[$($g:tt)*]($($w:tt)*))?=> $to:ty
+    ),+ $(,)? $b:block) => {
         $(
+            $(#[$meta])*
             impl$(<$($g)*>)? Unpack for $ty
             $(where $($w)*)?
             {
@@ -287,8 +291,12 @@ macro_rules! impls {
             }
         )+
     };
-    (@impl($i:ident) $($ty:ty $(=[$($g:tt)*])?=> $to:ty),+ $(,)? $b:block) => {
+    (@impl($i:ident) $(
+        $(#[$meta:meta])*
+        $ty:ty $(=[$($g:tt)*])?=> $to:ty
+    ),+ $(,)? $b:block) => {
         $(
+            $(#[$meta])*
             impl$(<$($g)*>)? Unpack for $ty {
                 type Output = $to;
 
@@ -297,15 +305,21 @@ macro_rules! impls {
         )+
     };
     ($self:ident {
-        $($($ty:ty $(=[$($g:tt)*]$(($($w:tt)*))?)?=> $to:ty),+ $(,)? $b:block)*
+        $($(
+            $(#[$meta:meta])*
+            $ty:ty $(=[$($g:tt)*]$(($($w:tt)*))?)?=> $to:ty
+        ),+ $(,)? $b:block)*
     }) => {
-        $(impls! {
+        $(impls1! {
             @impl($self)
-            $($ty $(=[$($g)*]$(($($w)*))?)? => $to),+ $b
+            $(
+                $(#[$meta])*
+                $ty $(=[$($g)*]$(($($w)*))?)? => $to
+            ),+ $b
         })*
     };
 }
-impls!(self {
+impls1!(self {
     &'_ &'a T           =['a, T: ?Sized]    => &'a T,
     &'_ mut &'a T       =['a, T: ?Sized]    => &'a T,
     &'a mut &'_ mut T   =['a, T: ?Sized]    => &'a mut T,
@@ -354,20 +368,21 @@ impls!(self {
         self.map(|x| &*x)
     }
 
+    #[cfg(not(feature = "no_std"))]
     Box<T>  =[T]    => T,
     {
         *self
     }
 });
-macro_rules! impls {
+macro_rules! impls2 {
     ($fst:ident, $st:ident $(,)?) => {
-        impls!(@impl $fst);
-        impls!(@impl #[doc = "Fake Variadic impl"] $fst, $st);
+        impls2!(@impl $fst);
+        impls2!(@impl #[doc = "Fake Variadic impl"] $fst, $st);
     };
     ($fst:ident $(, $i:ident)+ $(,)?) => {
-        impls!($($i),*);
+        impls2!($($i),*);
 
-        impls!(@impl #[doc(hidden)] $fst, $($i),+);
+        impls2!(@impl #[doc(hidden)] $fst, $($i),+);
     };
     (@impl $(#[$meta:meta])* $fst:ident $(, $i:ident)* $(,)?) => {
         $(#[$meta])*
@@ -408,7 +423,7 @@ macro_rules! impls {
         }
     };
 }
-impls!(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P,);
+impls2!(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P,);
 macro_rules! impl_asref_asmut_self {
     (impl[$($g:tt)*] for $ty:ty $(where $($w:tt)*)?) => {
         impl<$($g)*> AsRef<Self> for $ty
