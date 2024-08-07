@@ -409,6 +409,24 @@ macro_rules! impls {
     };
 }
 impls!(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P,);
+macro_rules! impl_asref_asmut_self {
+    (impl[$($g:tt)*] for $ty:ty $(where $($w:tt)*)?) => {
+        impl<$($g)*> AsRef<Self> for $ty
+        $(where $($w)*)?
+        {
+            fn as_ref(&self) -> &Self {
+                self
+            }
+        }
+        impl<$($g)*> AsMut<Self> for $ty
+        $(where $($w)*)?
+        {
+            fn as_mut(&mut self) -> &mut Self {
+                self
+            }
+        }
+    };
+}
 
 /// Implement commonly used combinations of [`Iterator::map`]
 ///
@@ -567,6 +585,7 @@ pub type MapFn<I: Iterator, U> = Map<I, fn(I::Item) -> U>;
 /// Create from [`map_index`]
 ///
 /// [`map_index`]: MapExt::map_index
+#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct MapIndex<'a, I: Iterator, Idx: Clone> {
     _phantom: PhantomData<&'a I::Item>,
     iter: I,
@@ -663,6 +682,7 @@ where I: FusedIterator,
 /// Create from [`map_index_mut`]
 ///
 /// [`map_index_mut`]: MapExt::map_index_mut
+#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct MapIndexMut<'a, I: Iterator, Idx: Clone> {
     _phantom: PhantomData<&'a I::Item>,
     iter: I,
@@ -754,6 +774,16 @@ where I: FusedIterator,
       R: ?Sized + IndexMut<Idx, Output = T> + 'a,
       T: ?Sized + 'a,
 {
+}
+impl_asref_asmut_self! {
+    impl[I, Idx] for MapIndex<'_, I, Idx>
+    where I: Iterator,
+          Idx: Clone,
+}
+impl_asref_asmut_self! {
+    impl[I, Idx] for MapIndexMut<'_, I, Idx>
+    where I: Iterator,
+          Idx: Clone,
 }
 
 #[cfg(not(feature = "no_std"))]
