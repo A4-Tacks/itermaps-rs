@@ -79,6 +79,10 @@ macro_rules! fields {
         let $name = $crate::fields!(@extract($v) $($w)+);
         $e
     }};
+    (@extract($v:expr) $name:pat = $w:tt > $e:expr) => {{
+        let $name = $crate::fields!(@extract($v) $w);
+        $e
+    }};
 
     () => (|_| ()); // empty
     (@run() [$($e:tt)+]) => { // start one extract
@@ -130,6 +134,18 @@ macro_rules! fields {
     (@collect($($c:tt)*) $t1:tt $t2:tt $t3:tt $t4:tt $t5:tt $t6:tt , $($t:tt)*) => {
         $crate::fields!(@collect($($c)* [$t1 $t2 $t3 $t4 $t5 $t6],) $($t)*)
     };
+    (@collect($($c:tt)*) $t1:tt $t2:tt $t3:tt $t4:tt $t5:tt $t6:tt $t7:tt , $($t:tt)*) => {
+        $crate::fields!(@collect($($c)* [$t1 $t2 $t3 $t4 $t5 $t6 $t7],) $($t)*)
+    };
+    (@collect($($c:tt)*) $t1:tt $t2:tt $t3:tt $t4:tt $t5:tt $t6:tt $t7:tt $t8:tt , $($t:tt)*) => {
+        $crate::fields!(@collect($($c)* [$t1 $t2 $t3 $t4 $t5 $t6 $t7 $t8],) $($t)*)
+    };
+    (@collect($($c:tt)*) $t1:tt $t2:tt $t3:tt $t4:tt $t5:tt $t6:tt $t7:tt $t8:tt $t9:tt , $($t:tt)*) => {
+        $crate::fields!(@collect($($c)* [$t1 $t2 $t3 $t4 $t5 $t6 $t7 $t8 $t9],) $($t)*)
+    };
+    (@collect($($c:tt)*) $t1:tt $t2:tt $t3:tt $t4:tt $t5:tt $t6:tt $t7:tt $t8:tt $t9:tt $t10:tt , $($t:tt)*) => {
+        $crate::fields!(@collect($($c)* [$t1 $t2 $t3 $t4 $t5 $t6 $t7 $t8 $t9 $t10],) $($t)*)
+    };
     // end, no comma
     (@collect($($c:tt)*) ($($tn:tt)+)) => {
         $crate::fields!(@collect($($c)* [$($tn)+]))
@@ -154,6 +170,18 @@ macro_rules! fields {
     };
     (@collect($($c:tt)*) $t1:tt $t2:tt $t3:tt $t4:tt $t5:tt $t6:tt) => {
         $crate::fields!(@collect($($c)* [$t1 $t2 $t3 $t4 $t5 $t6]))
+    };
+    (@collect($($c:tt)*) $t1:tt $t2:tt $t3:tt $t4:tt $t5:tt $t6:tt $t7:tt) => {
+        $crate::fields!(@collect($($c)* [$t1 $t2 $t3 $t4 $t5 $t6 $t7]))
+    };
+    (@collect($($c:tt)*) $t1:tt $t2:tt $t3:tt $t4:tt $t5:tt $t6:tt $t7:tt $t8:tt) => {
+        $crate::fields!(@collect($($c)* [$t1 $t2 $t3 $t4 $t5 $t6 $t7 $t8]))
+    };
+    (@collect($($c:tt)*) $t1:tt $t2:tt $t3:tt $t4:tt $t5:tt $t6:tt $t7:tt $t8:tt $t9:tt) => {
+        $crate::fields!(@collect($($c)* [$t1 $t2 $t3 $t4 $t5 $t6 $t7 $t8 $t9]))
+    };
+    (@collect($($c:tt)*) $t1:tt $t2:tt $t3:tt $t4:tt $t5:tt $t6:tt $t7:tt $t8:tt $t9:tt $t10:tt) => {
+        $crate::fields!(@collect($($c)* [$t1 $t2 $t3 $t4 $t5 $t6 $t7 $t8 $t9 $t10]))
     };
 
     // enumerate prefix bound
@@ -903,6 +931,10 @@ mod tests {
             .iter_mut()
             .map(fields!((*&*&*&*&*&0)))
             .collect();
+        let _x: Vec<i32> = [(1,)]
+            .iter_mut()
+            .map(fields!(*&*&*&*&0))
+            .collect();
         let _x: Vec<(&i32, &mut &str, char)> = [("", 'c', 2, Box::new(3))]
             .iter_mut()
             .map(fields!(&*3, &mut 0, 1))
@@ -984,6 +1016,10 @@ mod tests {
         let _x: Vec<(&i32,)> = [(2, 3)]
             .iter()
             .map(fields!(n =(&1)> (n,)))
+            .collect();
+        let _x: Vec<(i32,)> = [(2, 3)]
+            .iter()
+            .map(fields!(n =1> (n,)))
             .collect();
     }
 }
