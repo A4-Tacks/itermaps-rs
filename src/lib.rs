@@ -282,6 +282,7 @@ fn array_each_mut<T, const N: usize>(arr: &mut [T; N]) -> [&mut T; N] {
     };
     let mut elem;
     let mut arr = &mut arr[..];
+    #[allow(clippy::needless_range_loop)]
     for i in 0..N {
         (elem, arr) = arr.split_first_mut().unwrap();
         result[i].write(elem);
