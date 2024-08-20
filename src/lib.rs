@@ -1022,4 +1022,16 @@ mod tests {
             .map(fields!(n =1> (n,)))
             .collect();
     }
+
+    #[test]
+    fn array_each_ref_test() {
+        let mut arr = [1, 2, 3];
+        let arr1 = array_each_ref(&arr);
+        assert_eq!(arr1, [&1, &2, &3]);
+        let arr2 = array_each_mut(&mut arr);
+        assert_eq!(arr2, [&mut 1, &mut 2, &mut 3]);
+        assert_eq!(arr, [1, 2, 3]);
+        *array_each_mut(&mut arr)[1] += 1;
+        assert_eq!(arr, [1, 3, 3]);
+    }
 }
