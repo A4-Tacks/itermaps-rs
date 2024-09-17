@@ -22,6 +22,7 @@ use core::{
 /// - `[...]` insert a rust expr, e.g `[foo(2)]`
 /// - `field.sub` sub field of field
 /// - `field()` call method
+/// - `field[...]` index value
 /// - `pat =(field)> expr` bind field into pat, return expr, e.g `n =(&1)> (n,)`
 ///
 /// # Examples
@@ -74,6 +75,15 @@ macro_rules! fields {
     };
     (@extract($v:expr) $f:tt $(($($p:tt)*))?) => {
         $v.$f $(($($p)*))?
+    };
+    (@extract($v:expr) $f:tt . $g:tt . $h:tt $([$($p:tt)*])?) => {
+        $v.$f.$g.$h $([$($p)*])?
+    };
+    (@extract($v:expr) $f:tt . $g:tt $([$($p:tt)*])?) => {
+        $v.$f.$g $([$($p)*])?
+    };
+    (@extract($v:expr) $f:tt $([$($p:tt)*])?) => {
+        $v.$f $([$($p)*])?
     };
     (@extract($v:expr) $name:pat = ($($w:tt)+) > $e:expr) => {{
         let $name = $crate::fields!(@extract($v) $($w)+);
@@ -1021,6 +1031,15 @@ mod tests {
         let _x: Vec<(i32,)> = [(2, 3)]
             .iter()
             .map(fields!(n =1> (n,)))
+            .collect();
+
+        let _x: Vec<u32> = [([0, 1i32, 2], 3u32)]
+            .iter()
+            .map(fields!(1))
+            .collect();
+        let _x: Vec<i32> = [([0, 1i32, 2], 3u32)]
+            .iter()
+            .map(fields!(0[1]))
             .collect();
     }
 
