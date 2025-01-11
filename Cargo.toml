@@ -1,6 +1,6 @@
 [package]
 name = "itermaps"
-version = "0.2.10"
+version = "0.3.0"
 edition = "2021"
 
 authors = ["A4-Tacks <wdsjxhno1001@163.com>"]
@@ -16,7 +16,7 @@ readme = "README.md"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [features]
-default = []
-no_std = []
+default = ["std"]
+std = []
 
 [dependencies]

@@ -1,5 +1,5 @@
-#![cfg_attr(feature = "no_std", no_std)]
-#![cfg_attr(not(feature = "no_std"), doc = include_str!("../README.md"))]
+#![cfg_attr(not(feature = "std"), no_std)]
+#![cfg_attr(feature = "std", doc = include_str!("../README.md"))]
 
 use core::{
     borrow::{Borrow, BorrowMut},
@@ -407,7 +407,7 @@ impls1!(self {
         self.map(|x| &*x)
     }
 
-    #[cfg(not(feature = "no_std"))]
+    #[cfg(feature = "std")]
     Box<T>  =[T]    => T,
     {
         *self
@@ -584,7 +584,7 @@ pub trait MapExt: Iterator + Sized {
         self.map(FromIterator::from_iter)
     }
 
-    #[cfg(not(feature = "no_std"))]
+    #[cfg(feature = "std")]
     /// like `iter.map(ToOwned::to_owned)`
     fn map_to_owned<R, U>(self) -> MapFn<Self, U>
     where Self::Item: Deref<Target = R>,
@@ -593,7 +593,7 @@ pub trait MapExt: Iterator + Sized {
         self.map(|value| value.to_owned())
     }
 
-    #[cfg(not(feature = "no_std"))]
+    #[cfg(feature = "std")]
     /// like `iter.map(ToString::to_string)`
     fn map_to_string<R>(self) -> MapFn<Self, String>
     where Self::Item: Deref<Target = R>,
@@ -840,7 +840,7 @@ impl_asref_asmut_self! {
           Idx: Clone,
 }
 
-#[cfg(not(feature = "no_std"))]
+#[cfg(feature = "std")]
 #[cfg(test)]
 mod tests {
     use super::*;
