@@ -486,7 +486,7 @@ macro_rules! impl_asref_asmut_self {
 ///
 /// [`Iterator::map`]: core::iter::Iterator::map
 pub trait MapExt: Iterator + Sized {
-    /// like `iter.map(Deref::deref)`
+    /// like [`iter.map(Deref::deref)`](Deref::deref)
     fn map_deref<'a, R, U>(self) -> MapFn<Self, &'a U>
     where Self::Item: ThisRef<'a, Out = R>,
           R: ?Sized + Deref<Target = U> + 'a,
@@ -495,7 +495,7 @@ pub trait MapExt: Iterator + Sized {
         self.map(|ref_value| ref_value.this_ref().deref())
     }
 
-    /// like `iter.map(Deref::deref_mut)`
+    /// like [`iter.map(DerefMut::deref_mut)`](DerefMut::deref_mut)
     fn map_deref_mut<'a, R, U>(self) -> MapFn<Self, &'a mut U>
     where Self::Item: ThisMut<'a, Out = R>,
           R: ?Sized + DerefMut<Target = U> + 'a,
@@ -504,28 +504,28 @@ pub trait MapExt: Iterator + Sized {
         self.map(|ref_value| ref_value.this_mut().deref_mut())
     }
 
-    /// like `iter.map(Unpack::unpack)`
+    /// like [`iter.map(Unpack::unpack)`](Unpack::unpack)
     fn map_unpack<U>(self) -> MapFn<Self, U>
     where Self::Item: Unpack<Output = U>,
     {
         self.map(Unpack::unpack)
     }
 
-    /// like `iter.map(Into::into)`
+    /// like [`iter.map(Into::into)`](Into::into)
     fn map_into<U>(self) -> MapFn<Self, U>
     where Self::Item: Into<U>,
     {
         self.map(Self::Item::into)
     }
 
-    /// like `iter.map(TryInto::try_into)`
+    /// like [`iter.map(TryInto::try_into)`](TryInto::try_into)
     fn map_try_into<U>(self) -> MapFn<Self, Result<U, <Self::Item as TryInto<U>>::Error>>
     where Self::Item: TryInto<U>,
     {
         self.map(Self::Item::try_into)
     }
 
-    /// like `iter.map(str::parse::<U>)`
+    /// like [`iter.map(str::parse::<U>)`](str::parse)
     fn map_parse<U>(self) -> MapFn<Self, Result<U, U::Err>>
     where Self::Item: AsRef<str>,
           U: FromStr,
@@ -533,7 +533,7 @@ pub trait MapExt: Iterator + Sized {
         self.map(|s| s.as_ref().parse())
     }
 
-    /// like `iter.map(AsRef::as_ref::<U>)`
+    /// like [`iter.map(AsRef::as_ref::<U>)`](AsRef::as_ref)
     fn map_as_ref<'a, U>(self) -> MapFn<Self, &'a U>
     where Self::Item: ThisRef<'a>,
           U: ?Sized + 'a,
@@ -542,7 +542,7 @@ pub trait MapExt: Iterator + Sized {
         self.map(|r| r.this_ref().as_ref())
     }
 
-    /// like `iter.map(AsMut::as_mut::<U>)`
+    /// like [`iter.map(AsMut::as_mut::<U>)`](AsMut::as_mut)
     fn map_as_mut<'a, U>(self) -> MapFn<Self, &'a mut U>
     where Self::Item: ThisMut<'a>,
           U: ?Sized + 'a,
@@ -551,7 +551,7 @@ pub trait MapExt: Iterator + Sized {
         self.map(|r| r.this_mut().as_mut())
     }
 
-    /// like `iter.map(Borrow::borrow::<U>)`
+    /// like [`iter.map(Borrow::borrow::<U>)`](Borrow::borrow)
     fn map_borrow<'a, U>(self) -> MapFn<Self, &'a U>
     where Self::Item: ThisRef<'a>,
           U: ?Sized + 'a,
@@ -560,7 +560,7 @@ pub trait MapExt: Iterator + Sized {
         self.map(|r| r.this_ref().borrow())
     }
 
-    /// like `iter.map(BorrowMut::borrow_mut::<U>)`
+    /// like [`iter.map(BorrowMut::borrow_mut::<U>)`](BorrowMut::borrow_mut)
     fn map_borrow_mut<'a, U>(self) -> MapFn<Self, &'a mut U>
     where Self::Item: ThisMut<'a>,
           U: ?Sized + 'a,
@@ -569,14 +569,14 @@ pub trait MapExt: Iterator + Sized {
         self.map(|r| r.this_mut().borrow_mut())
     }
 
-    /// like `iter.map(IntoIterator::into_iter)`
+    /// like [`iter.map(IntoIterator::into_iter)`](IntoIterator::into_iter)
     fn map_into_iter<I>(self) -> MapFn<Self, I>
     where Self::Item: IntoIterator<IntoIter = I>,
     {
         self.map(IntoIterator::into_iter)
     }
 
-    /// like `iter.map(FromIterator::from_iter)`
+    /// like [`iter.map(FromIterator::from_iter)`](FromIterator::from_iter)
     fn map_collect<A, C>(self) -> MapFn<Self, C>
     where Self::Item: Iterator<Item = A>,
           C: FromIterator<A>,
@@ -585,7 +585,7 @@ pub trait MapExt: Iterator + Sized {
     }
 
     #[cfg(feature = "std")]
-    /// like `iter.map(ToOwned::to_owned)`
+    /// like [`iter.map(ToOwned::to_owned)`](ToOwned::to_owned)
     fn map_to_owned<R, U>(self) -> MapFn<Self, U>
     where Self::Item: Deref<Target = R>,
           R: ?Sized + ToOwned<Owned = U>,
@@ -594,7 +594,7 @@ pub trait MapExt: Iterator + Sized {
     }
 
     #[cfg(feature = "std")]
-    /// like `iter.map(ToString::to_string)`
+    /// like [`iter.map(ToString::to_string)`](ToString::to_string)
     fn map_to_string<R>(self) -> MapFn<Self, String>
     where Self::Item: Deref<Target = R>,
           R: ?Sized + ToString,
