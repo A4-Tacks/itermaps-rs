@@ -11,6 +11,8 @@ use core::{
     str::FromStr,
 };
 
+pub mod short_funcs;
+
 /// Generate a closure extract fields to tuple.
 ///
 /// ### Support exprs:
