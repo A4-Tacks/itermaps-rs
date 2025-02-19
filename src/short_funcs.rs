@@ -1,4 +1,4 @@
-//!  Short traits method name, e.g [`Unpack::unpack`] -> `unpack`
+//! Short traits method name, e.g [`Unpack::unpack`] -> `unpack`
 //!
 //! # Examples
 //! ```
@@ -10,10 +10,11 @@
 
 use core::{
     borrow::{Borrow, BorrowMut},
-    ops::{Deref, DerefMut, Index, IndexMut},
     str::FromStr,
 };
 
+pub mod ops;
+pub use ops::{deref, deref_mut, index, index_mut, index_owned};
 use crate::Unpack;
 
 /// like [`Default::default`]
@@ -58,16 +59,6 @@ pub fn to_string<T: ?Sized + ToString>(this: &T) -> String {
     this.to_string()
 }
 
-/// like [`Deref::deref`]
-pub fn deref<T: ?Sized + Deref>(this: &T) -> &T::Target {
-    this
-}
-
-/// like [`DerefMut::deref_mut`]
-pub fn deref_mut<T: ?Sized + DerefMut>(this: &mut T) -> &mut T::Target {
-    this
-}
-
 /// like [`AsRef::as_ref`]
 pub fn as_ref<T: ?Sized + AsRef<U>, U>(this: &T) -> &U {
     this.as_ref()
@@ -99,41 +90,22 @@ pub fn clone<T: Clone>(this: &T) -> T {
     this.clone()
 }
 
-/// like [`|v| &v[index]`](Index::index)
-///
-/// # Examples
-/// ```
-/// # use itermaps::short_funcs::*;
-/// let arr = Some(&[3, 4, 5]);
-///
-/// assert_eq!(arr.map(index(0)), Some(&3));
-/// assert_eq!(arr.map(index(1)), Some(&4));
-/// assert_eq!(arr.map(index(2)), Some(&5));
-/// ```
-pub fn index<T, I>(index: I) -> impl Fn(&T) -> &T::Output
-where T: ?Sized + Index<I>,
-      I: Clone,
+/// like `|v| { f(&v); v }`
+pub fn run_ref<T, F>(mut f: F) -> impl FnMut(T) -> T
+where F: FnMut(&T),
 {
-    move |value| &value[index.clone()]
+    move |this| {
+        f(&this);
+        this
+    }
 }
 
-/// like [`|v| &mut v[index]`](IndexMut::index_mut)
-pub fn index_mut<T, I>(index: I) -> impl Fn(
-    &mut T
-) -> &mut T::Output
-where T: ?Sized + IndexMut<I>,
-      I: Clone,
+/// like `|v| { f(&mut v); v }`
+pub fn run_mut<T, F>(mut f: F) -> impl FnMut(T) -> T
+where F: FnMut(&mut T),
 {
-    move |value| &mut value[index.clone()]
-}
-
-/// like [`|v| v[index]`](IndexMut::index_mut)
-pub fn index_owned<T, I>(index: I) -> impl Fn(
-    &T
-) -> T::Output
-where T: ?Sized + Index<I>,
-      I: Clone,
-      T::Output: Copy
-{
-    move |value| value[index.clone()]
+    move |mut this| {
+        f(&mut this);
+        this
+    }
 }
