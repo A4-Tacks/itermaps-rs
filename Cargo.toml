@@ -1,10 +1,11 @@
 [package]
 name = "itermaps"
-version = "0.3.2"
+version = "0.3.3"
 edition = "2021"
 
 authors = ["A4-Tacks <wdsjxhno1001@163.com>"]
-keywords = ["iterator", "extension", "adapter"]
+keywords = ["iterator", "map", "extension", "adapter"]
+categories = ["no-std", "no-std::no-alloc"]
 description = "Implement commonly used combinations of `Iterator::map`"
 
 license = "MIT"
