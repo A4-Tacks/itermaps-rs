@@ -10,6 +10,7 @@
 
 use core::{
     borrow::{Borrow, BorrowMut},
+    iter::once,
     str::FromStr,
 };
 
@@ -108,4 +109,33 @@ where F: FnMut(&mut T),
         f(&mut this);
         this
     }
+}
+
+/// like `|elem| collect.extend(once(elem))`
+///
+/// # Examples
+/// ```
+/// # use itermaps::short_funcs::*;
+/// let mut acc = vec![0];
+/// (1..3).for_each(extend_to(&mut acc));
+/// assert_eq!(acc, [0, 1, 2]);
+pub fn extend_to<T, C>(collect: &mut C) -> impl FnMut(T) + '_
+where C: Extend<T>,
+{
+    |elem| collect.extend(once(elem))
+}
+
+/// like `|mut collect, elem| { collect.extend(once(elem)); collect }`
+///
+/// # Examples
+/// ```
+/// # use itermaps::short_funcs::*;
+/// let acc = (1..3).fold(vec![0], extend);
+/// assert_eq!(acc, [0, 1, 2]);
+/// ```
+pub fn extend<T, C>(mut collect: C, elem: T) -> C
+where C: Extend<T>,
+{
+    collect.extend(once(elem));
+    collect
 }
