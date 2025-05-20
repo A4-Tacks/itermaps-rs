@@ -16,7 +16,7 @@ use core::{
 
 pub mod ops;
 pub use ops::{deref, deref_mut, index, index_mut, index_owned};
-use crate::Unpack;
+use crate::{ThisMut, ThisRef, Unpack};
 
 /// like [`Default::default`]
 pub fn default<T: Default>() -> T {
@@ -26,6 +26,16 @@ pub fn default<T: Default>() -> T {
 /// like [`Unpack::unpack`]
 pub fn unpack<T: Unpack>(this: T) -> T::Output {
     this.unpack()
+}
+
+/// like [`ThisRef::this_ref`]
+pub fn this_ref<'a, T: ThisRef<'a>>(this: T) -> &'a T::Out {
+    this.this_ref()
+}
+
+/// like [`ThisMut::this_mut`]
+pub fn this_mut<'a, T: ThisMut<'a>>(this: T) -> &'a mut T::Out {
+    this.this_mut()
 }
 
 /// like [`<T as Into<U>>::into`](Into::into)
