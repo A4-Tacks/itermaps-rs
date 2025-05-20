@@ -225,7 +225,7 @@ macro_rules! fields {
 }
 
 /// Consume self into reference
-pub trait ThisRef<'a> {
+pub trait ThisRef<'a>: 'a {
     type Out: ?Sized;
 
     /// Consume self into reference
