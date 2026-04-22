@@ -104,9 +104,9 @@ pub trait MapExt: Iterator + Sized {
     }
 
     /// like [`iter.map(FromIterator::from_iter)`](FromIterator::from_iter)
-    fn map_collect<A, C>(self) -> MapFn<Self, C>
-    where Self::Item: Iterator<Item = A>,
-          C: FromIterator<A>,
+    fn map_collect<C>(self) -> MapFn<Self, C>
+    where Self::Item: IntoIterator,
+          C: FromIterator<<Self::Item as IntoIterator>::Item>,
     {
         self.map(FromIterator::from_iter)
     }
@@ -469,6 +469,13 @@ pub(crate) mod tests {
         let arr = ["ab"];
         let x: Option<String> = arr.into_iter().map_to_owned().next();
         assert_eq!(x, Some("ab".into()));
+    }
+
+    #[test]
+    fn test_collect() {
+        let arr = [*b"ab"];
+        let x = arr.into_iter().map_collect::<Vec<u8>>().next();
+        assert_eq!(x, Some(vec![b'a', b'b']));
     }
 
     #[test]
